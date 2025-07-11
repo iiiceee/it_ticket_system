@@ -4,3 +4,5 @@ pillow==11.2.1
 playsound==1.2.2
 pystray==0.19.5
 six==1.17.0
+flask>=2.0
+gunicorn
