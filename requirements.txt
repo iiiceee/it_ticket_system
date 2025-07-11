@@ -6,3 +6,5 @@ pystray==0.19.5
 six==1.17.0
 flask>=2.0
 gunicorn
+flask_sqlalchemy
+flask_migrate
