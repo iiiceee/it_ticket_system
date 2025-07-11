@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>แดชบอร์ด IT</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+.comment-bubble {
+  max-width: 60%;
+  padding: 10px 15px;
+  margin: 5px 0;
+  border-radius: 15px;
+  position: relative;
+  display: inline-block;
+  font-size: 0.9em;
+  line-height: 1.4em;
+}
+
+.comment-bubble.left {
+  background-color: #f0f0f0;
+  margin-left: 0;
+  text-align: left;
+}
+
+.comment-bubble.right {
+  background-color: #d1f3ff;
+  margin-left: auto;
+  text-align: right;
+}
+.comment-meta {
+  font-size: 0.7em;
+  color: #888;
+  margin-top: 3px;
+}
+.comment-wrap {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+}
+
+
+</style>
+
+
+<style>
+.ticket-done {
+  background-color: #e0ffe0; /* สีเขียวอ่อน (งานเสร็จแล้ว) */
+}
+.ticket-processing {
+  background-color: #ffe4ec; /* สีชมพูอ่อน (รับงานแล้ว) */
+}
+</style>
+
+</head>
+<body>
+<h2>แดชบอร์ดทีม IT</h2>
+
+<p>📅 รายสัปดาห์: {{ weekly }} งาน</p>
+<p>🗓️ รายเดือน: {{ monthly }} งาน</p>
+<p>📈 รายปี: {{ yearly }} งาน</p>
+<p>📌 งานใหม่: {{ pending }}</p>
+<p>🛠️ กำลังดำเนินการ: {{ processing }}</p>
+
+<hr>
+<p><a href="{{ url_for('index') }}">← กลับหน้าแรก</a></p>
+<p>
+  <a href="{{ url_for('download_excel') }}">📥 ดาวน์โหลดรายงาน Excel</a>
+</p>
+
+
+<div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+  {% if tickets.has_prev %}
+    <a href="{{ url_for('dashboard', page=tickets.prev_num) }}">&laquo; ก่อนหน้า</a>
+  {% endif %}
+
+  {% for p in range(start_page, end_page + 1) %}
+    {% if p == tickets.page %}
+      <strong style="padding: 5px 10px; background-color: #007bff; color: white; border-radius: 5px;">{{ p }}</strong>
+    {% else %}
+      <a href="{{ url_for('dashboard', page=p) }}" style="padding: 5px 10px; background-color: #eee; border-radius: 5px; text-decoration: none;">{{ p }}</a>
+    {% endif %}
+  {% endfor %}
+
+  {% if tickets.has_next %}
+    <a href="{{ url_for('dashboard', page=tickets.next_num) }}">ถัดไป &raquo;</a>
+  {% endif %}
+</div>
+<table style="width: 100%; table-layout: fixed; border-collapse: collapse;">
+  <tr>
+        <th>ผู้เปิด</th>
+    <th>หัวข้อ</th>
+    <th>รายละเอียด</th>
+    <th>สถานะ</th>
+    <th>วันที่</th>
+    <th>อัปเดต</th>
+    <th>รูปแนบ</th> <!-- เพิ่มหัวข้อนี้ -->
+    <th>คอมเม้นท์</th>
+  </tr>
+
+  {% for ticket in tickets %}
+<tr class="{% if ticket.status == 'เสร็จแล้ว' %}ticket-done{% elif ticket.status == 'รับงานแล้ว' %}ticket-processing{% endif %}">
+
+  <td>{{ ticket.user.username }}</td>
+  <td>{{ ticket.title }}</td>
+  <td>{{ ticket.description }}</td>
+  <td>
+    {{ ticket.status }}
+    {% if ticket.status != 'เสร็จแล้ว' %}
+    <form method="POST" action="{{ url_for('update_status', ticket_id=ticket.id) }}" style="display:inline;">
+        <select name="status">
+            <option value="รับงานแล้ว">รับงานแล้ว</option>
+            <option value="เสร็จแล้ว">เสร็จแล้ว</option>
+        </select><br>
+        <textarea name="comment" rows="2" placeholder="เพิ่มคอมเมนต์ (ถ้ามี)"></textarea><br>
+        <button type="submit">อัปเดต</button>
+    </form>
+    {% endif %}
+  </td>
+  <td>{{ ticket.created_at.strftime('%Y-%m-%d') }}</td>
+  <td>{{ ticket.updated_at.strftime('%Y-%m-%d') }}</td>
+  <td>
+    {% if ticket.image1 or ticket.image2 or ticket.image3 %}
+    <div style="display: flex; gap: 5px;">
+      {% for img in [ticket.image1, ticket.image2, ticket.image3] if img %}
+        <a href="{{ url_for('static', filename=img) }}" target="_blank">
+          <img src="{{ url_for('static', filename=img) }}" width="150" style="border: 1px solid #ccc; border-radius: 5px;">
+        </a>
+      {% endfor %}
+    </div>
+    {% else %}
+      <span style="color: gray;">–</span>
+    {% endif %}
+  </td>
+  <td> <!-- ช่องว่างไว้ไม่ให้ table เพี้ยน -->
+    <!-- แสดงคำว่า "ดูด้านล่าง" -->
+    <span style="font-size: 0.8em; color: gray;">ดูด้านล่าง</span>
+  </td>
+</tr>
+
+<!-- 🔽 แสดงคอมเมนต์เป็น bubble ในแถวใหม่ -->
+<tr>
+  <td colspan="7">
+    <div class="comment-wrap">
+      {% for comment in comments_by_ticket[ticket.id] %}
+        <div class="comment-bubble {% if comment.user_id == session['user_id'] %}right{% else %}left{% endif %}">
+          <strong>{{ comment.user.username }}</strong>: {{ comment.content }}
+          <div class="comment-meta">
+            {{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}
+          </div>
+        </div>
+      {% else %}
+        <div style="color:gray;">ไม่มีคอมเมนต์</div>
+      {% endfor %}
+    </div>
+  </td>
+</tr>
+{% endfor %}
+
+</table>
+
+
+<div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+  {% if tickets.has_prev %}
+    <a href="{{ url_for('dashboard', page=tickets.prev_num) }}">&laquo; ก่อนหน้า</a>
+  {% endif %}
+
+  {% for p in range(start_page, end_page + 1) %}
+    {% if p == tickets.page %}
+      <strong style="padding: 5px 10px; background-color: #007bff; color: white; border-radius: 5px;">{{ p }}</strong>
+    {% else %}
+      <a href="{{ url_for('dashboard', page=p) }}" style="padding: 5px 10px; background-color: #eee; border-radius: 5px; text-decoration: none;">{{ p }}</a>
+    {% endif %}
+  {% endfor %}
+
+  {% if tickets.has_next %}
+    <a href="{{ url_for('dashboard', page=tickets.next_num) }}">ถัดไป &raquo;</a>
+  {% endif %}
+</div>
+
+<h3 style="margin-top: 40px;">📊 กราฟจำนวนงานรายเดือน (ปี 2025)</h3>
+<canvas id="monthlyChart" width="400" height="150"></canvas>
+
+<p><a href="{{ url_for('index') }}">← กลับหน้าแรก</a></p>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const ctx = document.getElementById('monthlyChart').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: {{ months | safe }},
+      datasets: [
+        {
+          label: 'ใหม่',
+          data: {{ new_counts | safe }},
+          backgroundColor: '#ffb3c1'
+        },
+        {
+          label: 'รับงานแล้ว',
+          data: {{ processing_counts | safe }},
+          backgroundColor: '#add8e6'
+        },
+        {
+          label: 'เสร็จแล้ว',
+          data: {{ done_counts | safe }},
+          backgroundColor: '#c4f1c4'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+});
+</script>
+
+
+</body>
+</html>

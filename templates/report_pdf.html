@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+<style>
+  @font-face {
+    font-family: 'THSarabun';
+    src: url('{{ url_for('static', filename='fonts/THSarabunNew.ttf') }}') format('truetype');
+  }
+  body {
+    font-family: 'THSarabun';
+    font-size: 18px;
+  }
+</style>
+
+</head>
+<body style="font-family: 'THSarabun';">
+  <img src="{{ url_for('static', filename='images/logo.png') }}" class="logo">
+  <h2 style="margin-top: 10px;">📄 รายงาน Ticket ทั้งหมด</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>หัวข้อ</th>
+        <th>รายละเอียด</th>
+        <th>สถานะ</th>
+        <th>วันที่สร้าง</th>
+        <th>อัปเดตล่าสุด</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ticket in tickets %}
+      <tr>
+        <td>{{ ticket.title }}</td>
+        <td>{{ ticket.description }}</td>
+        <td>{{ ticket.status }}</td>
+        <td>{{ ticket.created_at.strftime('%Y-%m-%d') }}</td>
+        <td>{{ ticket.updated_at.strftime('%Y-%m-%d') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

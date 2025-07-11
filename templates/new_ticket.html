@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="th">
+<head><meta charset="UTF-8"><title>เปิด Ticket</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<h2>เปิด Ticket ใหม่</h2>
+<form method="POST" enctype="multipart/form-data">
+  <label>หัวข้อ:</label>
+  <input type="text" name="title" required><br>
+
+  <label>รายละเอียด:</label>
+  <textarea name="description" required></textarea><br>
+
+  <label>แนบรูป (สูงสุด 3 รูป, รวม ≤ 15MB):</label>
+  <input type="file" name="images" multiple accept="image/*"><br>
+
+  <button type="submit">เปิด Ticket</button>
+</form>
+<p><a href="{{ url_for('index') }}">← กลับหน้าแรก</a></p>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="th">
+<head><meta charset="UTF-8"><title>รายละเอียด Ticket</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<style>
+.comment-bubble {
+  max-width: 70%;
+  padding: 10px 15px;
+  margin: 5px 0;
+  border-radius: 15px;
+  position: relative;
+  font-size: 0.95em;
+  word-wrap: break-word;
+}
+
+.comment-left {
+  background-color: #f0f0f0;
+  margin-right: auto;
+  border-top-left-radius: 0;
+}
+
+.comment-right {
+  background-color: #d0f0ff;
+  margin-left: auto;
+  border-top-right-radius: 0;
+}
+
+.comment-meta {
+  font-size: 0.75em;
+  color: #666;
+  margin-top: 3px;
+  text-align: right;
+}
+</style>
+
+
+</head>
+<body>
+<h2>รายละเอียด Ticket</h2>
+<p><a href="{{ url_for('my_tickets') }}">← กลับ</a></p>
+{% if ticket.status != 'เสร็จแล้ว' %}
+<form method="POST">
+    <label>หัวข้อ:</label><br>
+    <input type="text" name="title" value="{{ ticket.title }}" required><br>
+    <label>รายละเอียด:</label><br>
+    <textarea name="description" rows="5">{{ ticket.description }}</textarea><br><br>
+    <button type="submit" name="update">อัปเดต</button>
+    <button type="submit" name="delete" onclick="return confirm('ลบจริงหรือไม่?')">ลบ</button>
+</form>
+{% else %}
+<p>🔒 ตั๋วนี้ถูกปิดแล้ว ไม่สามารถแก้ไขได้</p>
+<p><strong>หัวข้อ:</strong> {{ ticket.title }}</p>
+<p><strong>รายละเอียด:</strong> {{ ticket.description }}</p>
+{% endif %}
+
+
+<hr>
+<h3>คอมเมนต์</h3>
+<form method="POST">
+  <textarea name="comment" rows="3" required></textarea><br>
+  <button type="submit" name="add_comment">ส่งคอมเมนต์</button>
+</form>
+
+
+<ul>
+<div>
+  {% for comment in comments %}
+    <div class="comment-bubble {{ 'comment-right' if comment.user_id == session['user_id'] else 'comment-left' }}">
+      <strong>{{ comment.user.username }}</strong><br>
+      {{ comment.content }}
+      <div class="comment-meta">{{ comment.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
+    </div>
+  {% else %}
+    <p>ยังไม่มีคอมเมนต์</p>
+  {% endfor %}
+</div>
+
+</ul>
+
+{% if ticket.image1 or ticket.image2 or ticket.image3 %}
+  <h4>รูปที่แนบ:</h4>
+  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        {% for img in [ticket.image1, ticket.image2, ticket.image3] if img %}
+ 		 <a href="{{ url_for('static', filename=img) }}" target="_blank">
+    		<img src="{{ url_for('static', filename=img) }}" width="150" style="border: 1px solid #ccc; border-radius: 5px;">
+ 		 </a>
+	{% endfor %}
+  </div>
+{% endif %}
+
+</body>
+</html>

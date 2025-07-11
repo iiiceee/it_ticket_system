@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="th">
+<head><meta charset="UTF-8"><title>หน้าแรก</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<h2>ยินดีต้อนรับ{{ ' ' + session['username'] if 'username' in session else '' }}</h2>
+{% if 'username' in session %}
+    <p><a href="{{ url_for('new_ticket') }}">เปิด Ticket ใหม่</a></p>
+    <p><a href="{{ url_for('my_tickets') }}">ตั๋วของฉัน</a></p>
+    {% if session['is_admin'] %}
+        <p><a href="{{ url_for('dashboard') }}">แดชบอร์ดทีม IT</a></p>
+    {% endif %}
+    <p><a href="{{ url_for('logout') }}">ออกจากระบบ</a></p>
+{% else %}
+    <p><a href="{{ url_for('login') }}">เข้าสู่ระบบ</a></p>
+    <p><a href="{{ url_for('register') }}">สมัครสมาชิก</a></p>
+{% endif %}
+</body>
+</html>
