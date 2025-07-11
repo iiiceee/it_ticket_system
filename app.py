@@ -28,7 +28,7 @@ db = SQLAlchemy(app)
 
 @app.route('/')
 def hello():
-    return 'index.html'
+    return render_template('index.html')
 
 # 🧩 Models
 class User(db.Model):
