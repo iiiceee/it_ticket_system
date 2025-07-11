@@ -8,3 +8,4 @@ flask>=2.0
 gunicorn
 flask_sqlalchemy
 flask_migrate
+openpyxl
