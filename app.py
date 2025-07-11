@@ -26,6 +26,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+@app.route('/')
+def hello():
+return 'ระบบ IT Ticket พร้อมแล้ว! 🎉'
 
 # 🧩 Models
 class User(db.Model):
