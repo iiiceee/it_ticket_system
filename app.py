@@ -387,6 +387,37 @@ def download_excel():
     return send_file(tmp.name, as_attachment=True, download_name="report.xlsx")
 
 
+# ดาวน์โหลดอัพโหลด ฐานข้อมูล
+from flask import send_file, request
+import shutil
+
+# ดาวน์โหลดฐานข้อมูล
+@app.route('/download-db')
+def download_db():
+    if not session.get('is_admin'):
+        flash("เฉพาะผู้ดูแลระบบเท่านั้น", "danger")
+        return redirect(url_for('index'))
+
+    db_path = os.path.join(app.root_path, 'instance', 'tickets.db')
+    return send_file(db_path, as_attachment=True, download_name="tickets.db")
+
+# อัปโหลดฐานข้อมูล
+@app.route('/upload-db', methods=['POST'])
+def upload_db():
+    if not session.get('is_admin'):
+        flash("เฉพาะผู้ดูแลระบบเท่านั้น", "danger")
+        return redirect(url_for('index'))
+
+    file = request.files.get('db_file')
+    if file and file.filename.endswith('.db'):
+        db_path = os.path.join(app.root_path, 'instance', 'tickets.db')
+        file.save(db_path)
+        flash("อัปโหลดฐานข้อมูลสำเร็จแล้ว", "success")
+    else:
+        flash("กรุณาเลือกไฟล์ .db ที่ถูกต้อง", "danger")
+
+    return redirect(url_for('admin_dashboard'))
+
 
 # รันเซิร์ฟเวอร์
 if __name__ == '__main__':
